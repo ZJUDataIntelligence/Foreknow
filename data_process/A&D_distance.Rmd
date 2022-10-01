@@ -1,0 +1,156 @@
+---
+title: "A&D_distance"
+author: "Jiayun Jin"
+date: "2022/3/16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 函数distmix
+
+```{r}
+distmix <- function(data, method = "gower", idnum = NULL, idbin = NULL, idcat = NULL) {
+
+  if(any(is.na(data))) stop("Cannot handle missing values!")
+
+  if((is.matrix(data)||is.data.frame(data))==FALSE)
+    stop("The data must be a matrix or a data frame object!")
+
+  if(is.null(idnum)&&is.null(idbin)&&is.null(idcat))
+    stop("There is no distance computation, specify the numerical, binary, categorical variables!")
+
+  if(is.null(idbin)&&is.null(idcat)||is.null(idnum)&&is.null(idcat)||is.null(idnum)&&is.null(idbin))
+    stop("There is no mixed variables!")
+
+  dist_num4 <- c("gower", "wishart", "podani","huang", "harikumar", "ahmad")
+  method <- match.arg(method, dist_num4)
+
+  if ((length(c(idbin,idcat)) == 1) & method == "ahmad")
+    stop("Ahmad-Dey distance can not be calculated
+         because the combined binary and categorical variable is only 1 variable!")
+  if (length(idcat) == 1 & method == "harikumar")
+    stop("Harikumar-PV distance can not be calculated
+         because the categorical variable is only 1 variable!")
+
+  if(is.null(idnum)) {
+    num <- 0
+    msd <- 0
+    dist_numeric <- 0
+  } else {
+    num <- length(idnum)
+    msd <- mean(apply(data[, idnum, drop = FALSE], 2, sd))
+    x <- as.matrix(data[,idnum, drop=FALSE])
+    dist_numeric <- switch(method,
+                           gower = distNumeric(x, x, method = "mrw"),
+                           wishart = distNumeric(x, x, method = "sev"),
+                           podani = distNumeric(x, x, method = "ser.2"),
+                           huang = distNumeric(x, x, method = "se"),
+                           harikumar = as.matrix(dist(x, method = "manhattan")),
+                           ahmad = distNumeric(x, x, method = "se"))
+  }
+
+  if(is.null(idbin)) {
+    bin <- 0
+    dist_binary <- 0
+  } else {
+    bin <- length(idbin)
+    dist_matchbin <- matching(data[,idbin, drop=FALSE], data[,idbin, drop=FALSE])
+    if (method == "ahmad") {
+      dist_binary <- cooccur(data[,c(idbin, idcat),drop=FALSE])
+    } else {
+      if (method == "huang" | method == "harikumar") {
+        dist_binary <- dist_matchbin*bin
+      } else {
+        dist_binary <- dist_matchbin
+      }
+    }
+  }
+
+  if(is.null(idcat)) {
+    cat <- 0
+    dist_cat <- 0
+  } else {
+    cat <- length(idcat)
+    dist_matchcat <- matching(data[,idcat, drop=FALSE], data[,idcat, drop=FALSE])
+    if (method == "harikumar") {
+      dist_cat <- cooccur(data[,idcat, drop=FALSE])
+    } else {
+      if (method == "huang") {
+        dist_cat <- dist_matchcat*cat
+      } else {
+        if (method == "ahmad") {
+          dist_cat <- dist_binary
+        } else {
+          dist_cat <- dist_matchcat
+        }
+      }
+    }
+  }
+
+  nvar <- num + bin + cat
+  dist_mix <- switch(method,
+                     gower = dist_numeric*1/nvar + dist_binary*bin/nvar + dist_cat*cat/nvar,
+                     wishart = (dist_numeric*1/nvar + dist_binary*bin/nvar + dist_cat*cat/nvar)^0.5,
+                     podani = (dist_numeric + dist_binary*bin + dist_cat*cat)^0.5,
+                     huang = dist_numeric + dist_binary*msd + dist_cat*msd,
+                     harikumar = dist_numeric + dist_binary + dist_cat,
+                     ahmad = dist_numeric + (dist_binary)^2)
+
+  return(dist_mix)
+
+}
+```
+
+```{r}
+library(kmed)
+```
+
+```{r}
+datar1<-read.csv("F:\\金融风险预测\\三数据\\r1.csv")
+```
+
+```{r}
+dr<-distmix(datar1, method = "gower",idnum=11:16,idbin = 2:3,idcat = 4:10)
+```
+
+```{r}
+tr<-distmix(datar1, method = "ahmad",idnum=11:16,idbin = 2:3,idcat = 4:10)
+```
+
+
+
+```{r}
+write.table(dr,"gowerr1.csv",quote = F,sep=',')
+```
+```{r}
+write.table(tr,"ahmadr1.csv",quote = F,sep=',')
+```
+
+```{r}
+getwd()
+```
+# l1
+```{r}
+datal1<-read.csv("l1.csv")
+```
+
+```{r}
+dl<-distmix(datal1, method = "gower",idnum=4:12,idbin = NULL,idcat = 2:3)
+```
+```{r}
+write.table(dl,"gowerl1.csv",quote = F,sep=',')
+```
+
+```{r}
+tl<-distmix(datal1, method = "ahmad",idnum=4:12,idbin = NULL,idcat = 2:3)
+```
+```{r}
+write.table(tl,"ahmadl1.csv",quote = F,sep=',')
+```
+
+
+
+
