@@ -7,7 +7,7 @@ pytorch-geometric
 
 # Usage
 ## ```data_process```
-1."relate_screen.ipynb"：Associating three tables, filtering variables
+1.```relate_screen.ipynb```：Associating three tables, filtering variables
 input:"application_train.csv"、"bureau.csv"、"credit_card_balance.csv"
 output:"filtering.csv"
 
