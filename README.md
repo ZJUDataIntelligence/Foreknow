@@ -1,29 +1,31 @@
 # Foreknow
-We propose a Graph Attention Network (GAT)-based model for predicting credit default risk, leveraging various types of data.
+This is a Pytorch implementation of the model in the paper "Forecasting Credit Default Risk with Graph Attention Networks". 
 
 # Requirements
 pytorch
+
 pytorch-geometric
 
 # Usage
-## 1. Download dataset
-https://pan.baidu.com/s/1q1spkljIAeaogkFRBz3XfQ?pwd=cpbu
-## 2. Process data
-2.1 ```process.py```：We select some relevant features according to previous studies (Zhang et al., 2020; Xia et al., 2021; Liu et al., 2022) and expert knowledge. Select the maximum or mean value of some attributes, extra numerical attributes to represent to represent each categorical attribute.
+## To run the code
+1. Download the datasets at  [here](https://pan.baidu.com/s/1q1spkljIAeaogkFRBz3XfQ?pwd=cpbu). 
+2. Run the data processing code: 
 
-input:"application_train.csv"、"bureau.csv"、"credit_card_balance.csv"
+   ```python process.py```
 
-output:"one.csv"、"binary.csv"、"r1_onehot.csv"、"d1_onehot.csv"、"l1_onehot.csv"、"r1.csv"、"l1.csv"
+3. Run the credit default risk prediction code: 
 
-2.2 ```A&D_distance.Rmd```:Calculation of mixed data distances by Ahmad & Dey method
+   ```python myGAT.py```
 
-input:"r1.csv"、"l1.csv"
+## Code Organization
+1. ```process.py```: This file is used to process the three raw datasets and output relevant attributes for future credit default risk prediction tasks. 
+* Input: "application_train.csv", "bureau.csv", "credit_card_balance.csv"
+* Output: "one.csv"、"binary.csv", "r1_onehot.csv", "d1_onehot.csv", "l1_onehot.csv", "r1.csv", "l1.csv"
 
-output:"ahmad_r1.csv"、"ahmadl1.csv"
+2. ```A&D_distance.Rmd```: This file is used to calculate distances between mixed data by Ahmad & Dey method.
+* Input: "r1.csv", "l1.csv"
+* Output: "ahmad_r1.csv", "ahmadl1.csv"
 
-## 3. model
-3.1 ```myGAT.py```:our method. We conduct various experiments to verify the effectiveness of our proposed GAT-based model, including comparison with baseline methods, with extended baseline methods, component analysis, feature significance analysis and impact of parameters.
-
-input:"r1_onehot.csv"、"d1_onehot.csv"、"l1_onehot.csv"、"ahmad_r1.csv"、"ahmadl1.csv"、"binary.csv"
-
-output:"pre.csv"
+3. ```myGAT.py```: This file is the core implementation of the prediction model. 
+* Input: "r1_onehot.csv", "d1_onehot.csv", "l1_onehot.csv", "ahmad_r1.csv", "ahmadl1.csv", "binary.csv"
+* Output: "pre.csv"
